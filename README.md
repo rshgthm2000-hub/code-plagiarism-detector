@@ -2,68 +2,64 @@
 
 ## 📌 Overview
 
-This project implements a plagiarism detection system for tokenized source code submissions. It identifies both exact and approximate similarities between two submissions using rolling hash techniques and gap-tolerant matching.
+This project implements a highly efficient plagiarism detection engine for tokenized source code submissions. Instead of comparing raw text strings, the system processes sequences of integers (tokens), making it resilient against variable renaming or formatting changes.
 
-The system is designed to detect copied code even when minor modifications, insertions, or deletions have been made.
-
----
-
-## 🚀 Features
-
-* **Exact Match Detection:** Utilizes Rabin–Karp rolling hashes for fixed-length token windows.
-* **Non-Overlapping Matches:** Identifies and isolates distinct, non-overlapping matching code segments.
-* **Approximate Matching:** Offers configurable gap tolerance to catch structural modifications.
-* **Longest Similar Segment Identification:** Automatically pinpoints the single largest region of duplication.
-* **Similarity Scoring:** Generates exact metrics and binary plagiarism flags efficiently.
-* **Efficient Indexing:** Uses optimized hash-based structures to scale across large token streams.
+The engine identifies both exact and approximate similarities between two token streams using Rabin-Karp rolling hashes and dynamic gap-tolerant expansion algorithms.
 
 ---
 
-## 🛠️ Algorithm
+## 🚀 Algorithmic Parameters & Logic
 
-### 1. Exact Matching
-1. Generate rolling hashes for fixed-length token windows.
-2. Store hashes and their corresponding starting positions.
-3. Compare hash values across submissions.
-4. Verify matches and record non-overlapping exact match sequences.
+The system is hardcoded with specific threshold parameters to ensure high-confidence match reporting:
 
-### 2. Approximate Matching
-1. Start from anchors identified during the exact matching phase.
-2. Expand matches dynamically both forward and backward.
-3. Allow a limited number of gaps or structural shifts while preserving alignment.
-4. Compute the longest approximate matching segment.
+### 1. Exact Match Detection
+* **Hashing Strategy:** Utilizes Rabin–Karp rolling hashes (Base `257`, Modulo `1e9 + 7`) for initial fixed-length windows of **5 tokens**.
+* **Match Verification:** Hashes are compared, and identical sequences are verified token-by-token.
+* **Minimum Threshold:** A sequence is only recorded as a valid exact match if it spans **at least 10 consecutive tokens**.
+* **Non-Overlapping Guarantee:** Implements boolean tracking maps (`visited1`, `visited2`) to prevent counting overlapping sequence matches.
+
+### 2. Approximate Match Expansion
+* **Anchor Expansion:** Takes the exact match indices and dynamically expands them both forward and backward.
+* **Configurable Gap Tolerance:** Allows up to **20% structural drift/gaps** (`gap_fraction = 0.20`) between the two token sequences to catch injected or deleted statements.
+* **Minimum Threshold:** An approximate match is only logged as the maximum if its total expanded length is **at least 30 tokens**.
 
 ---
 
-## 📊 Output
+## 📊 Return Output Format
 
-The system evaluates the inputs and returns:
-* **Plagiarism Flag:** Binary flag (0/1) indicating if the similarity threshold is exceeded.
-* **Total Exact Match Length:** Total count of exactly matched tokens.
-* **Longest Approximate Match:** Length of the longest structurally similar token block.
-* **Match Target Positions:** Starting index of the dominant match in both Submission 1 and Submission 2.
+The core `match_submissions` function evaluates the token arrays and returns a 5-element `std::array<int, 5>` mapping the following metrics:
 
+| Index | Metric | Description |
+| :--- | :--- | :--- |
+| `[0]` | **Plagiarism Flag** | Binary `1` if total exact match length is **$\ge$ 40%** of the shorter submission, else `0`. |
+| `[1]` | **Total Exact Match** | The sum of all non-overlapping exact match sequences ($\ge$ 10 tokens). |
+| `[2]` | **Longest Approx Match** | The length of the single largest gap-tolerant matching segment ($\ge$ 30 tokens). |
+| `[3]` | **Submission 1 Index** | The starting index of the longest approximate match in the first array. |
+| `[4]` | **Submission 2 Index** | The starting index of the longest approximate match in the second array. |
 ---
 
 ## 💻 Technologies Used
 
 * **Language:** C++
-* **Data Structures:** STL Containers (Hash Maps, Vectors)
-* **Algorithms:** Rabin–Karp Rolling Hashing, Sequence Matching, Greedy Tracking
+* **Header Dependencies:** `<vector>`, `<unordered_map>`, `<array>`, `<span>`, `<tuple>`
+* **Data Structures:** Hash Maps for $O(1)$ token sequence lookups.
+* **Algorithms:** Rabin–Karp Rolling Hashing, Sliding Window Validation, Greedy Bidirectional Alignment.
 
 ---
 
 ## 📂 Applications
 
-* Academic plagiarism detection for programming courses.
-* Source code similarity and code-clone analysis.
+* Academic plagiarism detection for programming courses (identifying structural clones).
+* Source code similarity and clone-detection analysis.
 * Submission comparison and anomaly detection for competitive programming.
 * Large-scale code repository inspection and intellectual property verification.
 
 ---
 
-## 🧑‍💻 Author
+## 🧑‍💻 Author Profile
 
-**RISHI GOUTHAM** C++ | Advanced Algorithms | Computer Science Student  
-
-*Developed as a data structures and algorithms project exploring efficient techniques for source code similarity detection.*
+| Detail Field | Associated Information |
+| :--- | :--- |
+| **Name** | RISHI GOUTHAM |
+| **Technical Focus** | C++ \| Advanced Algorithms \| Computer Science Student |
+| **Project Context** | Developed as a data structures and algorithms project exploring efficient techniques for source code similarity detection. |
